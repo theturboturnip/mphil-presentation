@@ -1,0 +1,15 @@
+\ProvidesPackage{turnippoints}[2022/05/09]
+
+% Done taking options
+\ProcessOptions*\relax
+
+% ----
+% MAIN
+% ----
+\newcommand{\point}[1]{\item #1\vfill\null}
+\newcommand{\spoint}[2]{\item #1\ifstrempty{#2}{}{\begin{itemize}
+    \item #2
+\end{itemize}}\vfill\null}
+\newcommand{\sitem}[2]{\item #1\ifstrempty{#2}{}{\begin{itemize}
+    \item #2
+\end{itemize}}}

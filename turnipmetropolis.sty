@@ -1,0 +1,121 @@
+\ProvidesPackage{turnipmetropolis}[2022/02/06]
+
+% Metropolis theme
+\usetheme[progress bar=frametitle]{metropolis}
+
+% hyperref
+\usepackage{hyperref}
+
+% Color Theming
+
+\makeatletter
+
+% https://coolors.co/palette/03045e-0077b6-00b4d8-90e0ef-caf0f8
+\definecolor{turnip@primary@blue}{HTML}{0077B6}
+\definecolor{turnip@accent@blue}{HTML}{00B4D8}
+
+\definecolor{turnip@darkblue}{HTML}{03045E}
+\definecolor{turnip@paleblue}{HTML}{90E0EF}
+\definecolor{turnip@palestblue}{HTML}{CAF0F8}
+
+\definecolor{turnip@accent@green}{HTML}{00B87D}
+\definecolor{turnip@link@darkblue}{HTML}{0300B8}
+
+\definecolor{turnip@metropolisDarkTeal}{HTML}{23373b}
+\definecolor{turnip@metropolisLightBrown}{HTML}{EB811B}
+\definecolor{turnip@darktext}{HTML}{00233B}
+\definecolor{turnip@alerttext}{HTML}{E65F2D}
+
+% Set basic text
+\setbeamercolor{normal text}{
+    fg=turnip@darktext,
+    bg=white
+}
+\setbeamercolor{alerted text}{
+    fg=turnip@alerttext,
+    bg=white
+}
+
+% Set title page
+\setbeamercolor{turnip@title}{fg=white,bg=turnip@primary@blue}
+\setbeamercolor{title}{fg=white,bg=turnip@primary@blue}
+\setbeamercolor{title separator}{
+    fg=turnip@accent@green
+}
+\setbeamertemplate{title page}{
+    \begin{beamercolorbox}[ht=0.6\paperheight,wd=\paperwidth,leftskip=1cm,sep=0cm]{turnip@title}
+        \begin{minipage}[b]{\textwidth}
+            \ifx\inserttitle\@empty\else\usebeamertemplate*{title}\fi
+            \ifx\insertsubtitle\@empty\else\usebeamertemplate*{subtitle}\fi
+            \vspace{0.1cm}
+        \end{minipage}
+    \end{beamercolorbox}
+\vskip0pt plus 1filll % see beamerusersguide
+\begin{minipage}[t][0.4\paperheight]{\textwidth}
+\vspace{-1cm}
+        \ifx\beamer@shortauthor\@empty\else\usebeamertemplate*{author}\fi
+        \ifx\insertdate\@empty\else\usebeamertemplate*{date}\fi
+        \ifx\insertinstitute\@empty\else\usebeamertemplate*{institute}\fi
+    \end{minipage}
+}
+
+% Frame title + progress bar
+\setbeamercolor{frametitle}{
+    bg=turnip@primary@blue,
+    fg=white
+}
+\setbeamercolor{progress bar in head/foot}{
+    bg=turnip@paleblue,
+    fg=turnip@accent@green
+}
+\setbeamercolor{progress bar in section page}{
+    bg=turnip@paleblue,
+    fg=turnip@accent@green
+}
+\hypersetup{
+    colorlinks,
+    citecolor=turnip@link@darkblue,
+    urlcolor=turnip@link@darkblue,
+    linkcolor=,
+}  
+
+\setlength{\metropolis@titleseparator@linewidth}{3pt}
+\setlength{\metropolis@progressonsectionpage@linewidth}{3pt}
+\setlength{\metropolis@progressinheadfoot@linewidth}{3pt}
+
+\setbeamercolor{normal text}{
+    fg=turnip@darktext,
+    bg=white
+}
+\setbeamercolor{alerted text}{
+    fg=turnip@alerttext,
+    bg=white
+}
+
+\makeatother
+
+
+% add [handout] to beamer options to enable handout printing
+\usepackage{pgfpages}
+\mode<handout>{%
+    \setbeameroption{show notes on second screen=bottom}
+    
+
+}
+% Fix for handouts
+\makeatletter 
+\def\beamer@framenotesbegin{% at beginning of slide
+    \usebeamercolor[fg]{normal text}
+    \gdef\beamer@noteitems{}% 
+    \gdef\beamer@notes{}% 
+}
+\makeatother
+
+% Fira Math
+\usepackage[mathrm=sym]{unicode-math}
+\setmathfont{Fira Math}
+% Non-italic code font
+\setmonofont{FiraMono-Regular.otf}
+
+% Disabling numbering for appendix slides
+\usepackage{appendixnumberbeamer}

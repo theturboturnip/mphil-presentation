@@ -1,0 +1,36 @@
+\ProvidesPackage{turnipbeamerlayout}[2022/05/09]
+
+% Done taking options
+\ProcessOptions*\relax
+
+% ----
+% MAIN
+% ----
+
+\newcommand{\twocol}[4]{%
+\begin{columns}
+\column{#1\textwidth}
+#3
+\column{#2\textwidth}
+#4
+\end{columns}
+}
+\newcommand{\twocoltop}[4]{%
+\begin{columns}[T]
+\column{#1\textwidth}
+#3
+\column{#2\textwidth}
+#4
+\end{columns}
+}
+\newcommand{\twostack}[2]{
+#1
+
+
+\vfill\null
+
+
+#2
+}
+
+

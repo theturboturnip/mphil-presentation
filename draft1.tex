@@ -1,0 +1,616 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+
+% Style
+\usepackage{turnipmetropolis}
+
+% TODOs
+\usepackage[nofootnotes,warn]{turniptodo}
+
+\usepackage{graphicx}
+
+% Citations
+\usepackage[beamer]{turnipcite}
+\bibliography{thesis}
+% Numbers in beamer bibliography
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\citeauthoryear}[1]{\citeauthor{#1}, \citeyear{#1}}
+
+% Get \point, \spoint, \sitem for easy nesting of items
+\usepackage{turnippoints}
+
+% Get \twocol, \twostack
+\usepackage{turnipbeamerlayout}
+
+\usepackage{booktabs}
+\usepackage{array}
+
+% Cleverref, hyperref
+% \usepackage{hyperref}
+% \usepackage[capitalize,nameinlink]{cleveref}
+% % Compatibility with hyperrref
+% % https://tex.stackexchange.com/a/485979
+% \usepackage{crossreftools}
+
+% \let\ORGhypersetup\hypersetup
+% \protected\def\hypersetup{\ORGhypersetup}
+% \pdfstringdefDisableCommands{%
+%   \def\hypersetup#1{}%
+%   \let\Cref\crtCref
+%   \let\cref\crtcref
+% }
+
+
+\title{Capability-Based Memory Protection for Scalable Vector Processing}
+\author{Samuel Stark (\href{mailto:sws35@cam.ac.uk}{sws35@cam.ac.uk})}
+\date{June 16th 2022}
+
+\usepackage{multirow}
+
+\begin{document}
+
+\maketitle
+
+% TODO Content
+
+%
+
+\metroset{sectionpage=none}
+\section{Intro}
+\metroset{sectionpage=progressbar}
+
+% 7 slides - 5 minutes?
+
+\begin{frame}{Impenetrable Title}
+    \begin{center}
+        \Large \alert<2-3>{Capability-Based Memory Protection} for \\\alert<3>{Scalable Vector Processing}
+    \end{center}
+    \note{
+    Utterly impenetrable title
+    
+    Need to understan both x and y
+    
+    explain both of these first
+    
+    project should come along for the ride
+    }
+\end{frame}
+
+\begin{frame}[t]{Background - What is CHERI?}
+
+\begin{center}
+    \Large {Capability-Based Memory Protection} \code{==} \alert{CHERI}\footnote{Capability Hardware Enhanced RISC Instructions\cite{TR-941}}
+\end{center}
+
+
+\begin{itemize}
+    \spoint{Memory is normally addressed with integers}
+        {Integer addresses can be \emph{forged} %At any point, you can make up an address, and access any memory you want
+        \item Code can be \alert{tricked} into accessing memory it shouldn't}
+        
+    \sitem{CHERI architectures use \emph{capabilities} instead}
+        {Capability = Bounds + current address}
+    \item{Capabilities cannot be forged, only \emph{derived} from other capabilities}
+\end{itemize}
+
+\begin{center}
+    Code can only access memory when it has been \emph{given} access to that memory
+\end{center}
+
+\note{
+CHERI initiative started at the computer lab
+
+Apply CHERI to processor arch for improved security
+
+Normal archs use integer-addressed memory
+
+"give me byte 500"
+
+Any code can pull "500" out of thin air and access it
+
+The problem is attackers can trick your code into generating "500" and accessing it, even when it shouldn't
+
+for our purposes capabilities = bounds you can access + a specific address in that bounds
+
+hardware makes sure you only access data within capability bounds
+
+hardware makes sure you only derive capabilities from other capabilities
+
+very useful security property
+}
+
+% CHERI\footnote{Capability Hardware Enhanced RISC Instructions}
+% - capabilities = integer address + bounds (+metadata)
+% - capabilities replace pointers everywhere
+% - code can only access memory when it has been *given* access to that memory
+% - means you cannot trick programs into giving you data it shouldn't
+% - extremely useful security property
+% - Arm have manufactured a test board which uses it
+
+% Vector
+% - Single Instruction Multiple Data
+% - 
+\end{frame}
+
+\begin{frame}[t]{Background - What are vectors?}
+    \begin{center}
+        \Large (Scalable) Vector Processing
+    \end{center}
+
+\twocol{0.7}{0.3}{
+\begin{itemize}
+    \item{Vector architectures allow programmers to use SIMD}
+    \spoint{Most vector architectures have \emph{fixed-length} vectors}{SSE, Arm Neon = 128-bit, AVX-512 = 512
+    \item Vector lengths have hardware tradeoff
+    \item Need to recompile code for different vector lengths}
+    \spoint{\emph{Scalable vector} architectures give designers flexibility\cite{stephensARMScalableVector2017}}{Code doesn't rely on fixed vector length}
+    % can run on a wide range of underlying vector lengths}
+    % \todomark{Improve description of scalable vector}
+\end{itemize}
+}{
+\bgroup
+\def\arraystretch{1.2}%  1 is the default, change whatever you need
+\begin{table}[]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+\hline
+24&	9&	9&	28\\
+\hline
+\multicolumn{4}{c}{\Large +} \\
+\hline
+13&	17&	10&	24  \\
+\hline
+\multicolumn{4}{c}{\Large =} \\
+\hline
+37& 26& 19& 52 \\
+\hline
+\end{tabular}
+    \caption{Vector addition}
+\end{table}
+\egroup
+}
+
+\note {
+}
+\end{frame}
+
+% \begin{frame}{Background - Mutual impact}
+
+%     \begin{columns}[T]
+%     \centering
+% \column{0.5\textwidth}
+% % \begin{block}{RVV (original)}
+% \begin{itemize}
+%     \item CHERI checks all memory accesses in hardware
+%     \item[]
+%     \item Provides essential \alert{security}
+% \end{itemize}
+% % \end{block}
+
+% \column{0.5\textwidth}
+% % \begin{block}{CHERI-RVV (ours)}
+% \begin{itemize}
+%     \item Vector architectures do many memory accesses at once
+%     \item[]
+%     \item Provides essential \alert{speed}
+% \end{itemize}
+% % \end{block}
+% \end{columns}
+%     % No
+%     % Arm have developed a CHERI board with limited SIMD
+%     % In theory, it's simple to make vectors compatible with capabilities - just check each element access?
+%     % Why is this important/interesting?
+% \vfill\null
+% \begin{center}
+%     CHERI needs to support vector processors,\\
+%     but checking every access could be \emph{expensive}
+% \end{center}    
+% \begin{center}
+%     Where does this matter?
+% \end{center}
+% \end{frame}
+
+\begin{frame}{Have we combined them before?}
+    \begin{itemize}
+        \spoint{CHERI affects vector memory accesses}{Loading N vector elements in a single instruction}
+    
+        \spoint{Per-element access checks could be \emph{expensive}}{But vectors are too prevalent to ignore}
+    
+        \spoint{Arm have manufactured CHERI hardware}{Has fixed-length SIMD \item Doesn't support complex access patterns}
+        \point{No other general-purpose CHERI processors with vector support}
+    \end{itemize}
+    
+\begin{center}
+    Where does this matter?
+\end{center}
+\end{frame}
+
+\begin{frame}[t]{Background - Where does it matter most?}
+\twocol{0.6}{0.4}{
+    \begin{center}
+        \Large \textbf{\only<2->{Vectorized }\code{memcpy}!}
+    \end{center}
+    \vfill\null
+    \begin{itemize}
+        \point{Take data and copy it somewhere else}
+        \point{Extremely widespread operation}
+        \point{Vectors can copy more data per instruction}
+        \point{Vectorized \code{memcpy} should work and go fast on CHERI}
+    \end{itemize}
+    
+    
+    
+    % \todomark{This is extremely widespread - all of the phones and laptops in this room are doing it right now! On top of the "moral" argument of "we want the things we build to go fast",  it's actually important that this goes fast.}
+}{
+    \only<1>{
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/meme-scalar.jpg}
+        \caption{Scalar \code{memcpy}
+        % (\href{https://imgflip.com/memetemplate/272141981/Put-it-somewhere-else-Patrick-HD}{Template: imgflip.com/Mornedil})
+        }
+    \end{figure}
+    }
+    \only<2>{
+    \addtocounter{figure}{1}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/meme-vector.jpg}
+        \caption{Vectorized \code{memcpy}}
+    \end{figure}
+    }
+    % \only<3>{
+    %     \todomark{Example of vector instructions in memcpy}
+    % }
+}
+
+
+\end{frame}
+
+% \begin{frame}{Why Scalable vectors?}
+    
+% \end{frame}
+
+\begin{frame}[t]{Project goal}
+
+    \begin{center}
+        Make vectorized \code{memcpy} possible and fast on CHERI\\
+    \end{center}
+
+    \begin{center}
+        Combine the RISC-V Vector extension (RVV) with CHERI-RISC-V (a.k.a. CHERI-RVV)\\
+    \end{center}
+
+    % \begin{center}
+    %     Build a CHERI-RVV simulator in Rust to show it works
+    % \end{center}
+    
+\only<2>{
+\vfill\null
+    \begin{columns}[T]
+    \centering
+\column{0.4\textwidth}
+\begin{block}{RVV (original)}
+\begin{itemize}
+    \item Uses integer addressing
+    \begin{itemize}
+        \item[]
+    \end{itemize}
+    \item Loads/stores integer data
+\end{itemize}
+\end{block}
+
+\column{0.55\textwidth}
+\begin{block}{CHERI-RVV (ours)}
+\begin{itemize}
+    \item Uses \alert{capability} addressing
+    \begin{itemize}
+        \item Performance concerns?
+    \end{itemize}
+    \item Loads/stores integers \alert{and capabilities}
+    \item Doesn't break CHERI security
+\end{itemize}
+\end{block}
+\end{columns}
+\vfill\null
+}
+
+\begin{center}
+  \begin{minipage}[c]{0.6\linewidth}
+  \only<1>{
+  \vfill\null
+% \begin{block}{How?}
+    \begin{enumerate}
+        \sitem{Write a RISC-V CHERI-RVV emulator in Rust}{Demonstrates hardware feasibility}
+        \sitem{Write test programs in C}{Demonstrates software feasibility}
+        \point{Run the test programs on the emulator!}
+    \end{enumerate}
+% \end{block}
+}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+\section{Step 1: Making vector accesses \emph{use} capabilities}
+
+\begin{frame}{Vector memory access patterns}
+    \only<1>{
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\textwidth,height=6cm,keepaspectratio]{figures/unit.pdf}
+        \caption{Unit access}
+    \end{figure}
+    }
+    \only<2>{
+    \addtocounter{figure}{1}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\textwidth,height=6cm,keepaspectratio]{figures/strided.pdf}
+        \caption{Strided}
+    \end{figure}
+    }
+        \only<3>{
+    \addtocounter{figure}{2}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\textwidth,height=6cm,keepaspectratio]{figures/indexed.pdf}
+        \caption{Indexed}
+    \end{figure}
+    }
+\end{frame}
+
+\begin{frame}{Vector memory access patterns}
+\newcommand{\basetocap}{Base \only<1>{address}\only<2>{\alert{capability}}}
+% \newcommand{\basetocapaddr}{\code{0x37f0 }\only<2>{\code{(0x3700-0x3800)}}}
+\newcommand{\basetocapaddr}{\only<2>{{\footnotesize \code{0x3700.. }}}\code{0x37f0}\only<2>{{\footnotesize  \code{ ..0x3800}}}}
+
+    % \begin{block}{Unit-stride}
+    %     \begin{itemize}
+    %         \item \basetocap{}
+    %     \end{itemize}
+    % \end{block}
+    % \begin{block}{Stride}
+    %     \begin{itemize}
+    %         \item \basetocap{}
+    %         \item Offset  \hspace{2cm} \begin{tabular}{|c|}\hline 4 \\ \hline\end{tabular}
+    %     \end{itemize}
+    % \end{block}
+    % \begin{block}{Indexed}
+    %     \begin{itemize}
+    %         \item \basetocap{}
+    %         \item Index vector \hspace{1cm}  \begin{tabular}{|c|c|c|c|}\hline 17 & 53 & 8 & 44 \\ \hline\end{tabular}
+    %     \end{itemize}
+    % \end{block}
+    
+    \begin{tabular}{p{3cm}>{\centering\arraybackslash}p{6.75cm}>{\centering\arraybackslash}p{3cm}}
+    \toprule
+    \multicolumn{3}{l}{\textbf{Unit-stride}} \\
+    \midrule
+    \basetocap{} & \basetocapaddr{} & \includegraphics[width=3cm,height=1cm,keepaspectratio]{figures/min-unit.pdf}\\
+    
+    \midrule
+    \multicolumn{3}{l}{\textbf{Strided}} \\
+    \midrule
+    \basetocap{} & \basetocapaddr{} & \multirow{2}{*}{\includegraphics[width=3cm,height=2cm,keepaspectratio]{figures/min-strided.pdf}}\\
+    Stride & \code{2} & \\
+
+    \midrule
+    \multicolumn{3}{l}{\textbf{Indexed}} \\
+    \midrule
+    \basetocap{} & \basetocapaddr{} & \multirow{2}{*}{\includegraphics[width=3cm,height=2cm,keepaspectratio]{figures/min-indexed-wide.pdf}}\\
+    Index vector & \begin{tabular}{|c|c|c|c|}\hline 8 & 2 & 13 & 4 \\ \hline\end{tabular} \\
+    
+   \bottomrule
+   \rule{0pt}{3ex}
+   {\footnotesize Property} & {\footnotesize Example value} & {\footnotesize Memory pattern} 
+    \end{tabular}
+\end{frame}
+
+% \section{Capability addressing with vectors}
+
+% % Slide - what are the 
+
+% % 3 slides - 2 minutes?
+
+% % \section{Making capability checks fast}
+
+% % 2 slides - 2 minutes?
+
+\section{Step 2: Making vector accesses \emph{copy} capabilities}
+
+\begin{frame}{Storing capabilities in memory}
+    \twocol{0.5}{0.5}{
+    \begin{itemize}
+        \point{Memory can hold both capabilities and integers}
+        \spoint{Separate \emph{tag memory} denotes which regions are capabilities}{Access to tag memory is controlled by hardware}
+        \point{If the tag bit is cleared, you get the \emph{integer encoding} of the capability}
+    \end{itemize}
+    }{
+    \only<1>{
+    \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/mem-tagged.pdf}
+    }
+    \only<2>{
+    \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/mem-tagcleared-explain.pdf}
+    }
+    }
+\end{frame}
+
+\begin{frame}{Integer-only \code{memcpy}}
+\twostack{
+\vfill\null
+    \only<1>{\includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/memcpy-tagless.pdf}}
+    \only<2>{\includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/memcpy-implicitint.pdf}}
+    }{
+    \begin{itemize}
+        \point{The original RVV specification doesn't consider capabilities}
+        \point{Assumes vectors only hold \alert{integer} data}
+        \point{$\Rightarrow{}$ \code{memcpy} converts capabilities to integers :(}
+    \end{itemize}
+    }
+\end{frame}
+
+\begin{frame}{Copying capabilities in vectors}
+\twostack{
+    \vfill\null
+    \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/memcpy-tagged.pdf}
+    }{
+    \begin{itemize}
+        \point{If we add tag bits to vector registers, we can load/store them correctly}
+        \spoint{But does that make anything else more complicated?}{Yes}
+    \end{itemize}
+    }
+\end{frame}
+
+\begin{frame}{\emph{Storing} capabilities in vectors???}
+    \twocol{0.5}{0.5}{
+\begin{itemize}
+    \point{Now \emph{all vector instructions} can interact with capabilities!}
+    \point{If we aren't careful, attackers could forge capabilities}
+    \spoint{We introduce two modes of accessing vector registers}{Integer mode \item Capability mode}
+\end{itemize}}{
+\only<1>{\includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/vadd-cap-unk.pdf}}
+\only<2>{\includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/vadd-cap-badcap.pdf}}
+\only<3>{\includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/vadd-cap-int.pdf}}
+}
+\end{frame}
+
+\begin{frame}{Integer/Capability mode}
+    \twocol{0.5}{0.5}{
+    \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/memcpy-tagged-vertical.pdf}
+    \begin{center}
+        Capability Mode (128-bit vector loads/stores)
+    \end{center}
+    }{
+    \includegraphics[width=\textwidth,height=6cm,keepaspectratio]{figures/vadd-cap-int.pdf}
+    \begin{center}
+        Integer Mode (Everything else)
+    \end{center}
+    }
+\end{frame}
+
+% \section{\emph{Copying} capabilities with vectors}
+
+% % 3 slides - 2 minutes?
+
+\section{Conclusion}
+
+% \begin{frame}[t]{Conclusion}
+% \twocol{0.5}{0.5}{
+%     \begin{block}{CHERI-RVV}
+% \begin{itemize}
+%     \item Uses \alert{capability} addressing
+%     \item Loads/stores integers \alert{and capabilities}
+%     \item Doesn't break CHERI security
+% \end{itemize}
+% \end{block}
+
+% \begin{block}{Software Artifacts}
+% \begin{itemize}
+%     \item Emulator: \code{riscv-v-lite}
+%     \item Compiler: CHERI-Clang fork
+%     \item Test C programs
+%     \item 9,500 LoC!
+% \end{itemize}
+% \end{block}
+% }{
+% \begin{block}{Future work}
+% \vspace{0.5em}
+% What can you do with capabilities-in-vectors?
+% \begin{enumerate}
+%     \item Vectorized \code{memcpy}
+%     \item Vectorized tag clearing...?
+% \end{enumerate}
+% \end{block}
+
+% What \emph{could} you do?
+% \begin{itemize}
+%     \item Vectorized temporal revocation?\cite{xiaCHERIvokeCharacterisingPointer2019}
+%     \item Vectorized capability manipulation?
+% \end{itemize}
+% What instructions are required?
+% \vfill\null
+% }
+
+% \begin{center}
+%     \vspace{-1em}
+%     Samuel Stark, \href{mailto:sws35@cam.ac.uk}{sws35@cam.ac.uk}
+% \end{center}
+
+% \end{frame}
+% % 1 minute
+
+\begin{frame}{Conclusion}
+% CHERI-RVV
+    % \begin{itemize}
+    %     \item Uses capability addressing
+    %     \item Loads/stores integers and capabilities
+    %     % \item Allows capability-in-vector storage
+    %     \item Doesn't break CHERI security
+    %     \item Supports all vanilla RVV instructions
+    %     \item Is binary-compatible with vanilla RVV
+    %     \item Will be* source-compatible with vanilla RVV
+    %     \item Has a reference implementation
+    %     \begin{itemize}
+    %         \item Emulator
+    %         \item Compiler*
+    %         \item Test programs
+    %         \item 9,500 LoC
+    %     \end{itemize}
+    % \end{itemize}
+    
+    \twocoltop{0.6}{0.4}{
+    \begin{block}{CHERI-RVV Summary}\vspace{0.1em}
+    \begin{tabular}{l}
+        % \textbf{CHERI-RVV Summary} \\
+        \toprule
+        Uses capability addressing \\
+        Loads/stores integers and capabilities \\
+        % Allows capability-in-vector storage
+        Doesn't break CHERI security \\
+        \midrule
+        Supports all vanilla RVV instructions \\
+        \alert<2>{Is binary-compatible with vanilla RVV} \\
+        \alert<2>{Can be* source-compatible with vanilla RVV} \\
+        \midrule
+        Has a reference implementation: \\
+        Emulator, compiler*, test programs \\
+        9,500 LoC \\
+        \bottomrule
+        *compiler requires engineering work \\
+    \end{tabular}
+    \end{block}
+    }{
+    \begin{block}{Future work}
+\vspace{0.5em}
+Do more with vectors than just
+\begin{enumerate}
+    \item Vectorized \code{memcpy}
+    \item Vectorized tag clearing
+\end{enumerate}
+
+Add new instructions for e.g. temporal revocation\cite{xiaCHERIvokeCharacterisingPointer2019}?
+% \begin{itemize}
+%     \item Vectorized temporal revocation?\cite{xiaCHERIvokeCharacterisingPointer2019}
+%     \item Vectorized capability manipulation?
+% \end{itemize}
+
+\end{block}
+\vspace{3.2em}
+\begin{center}
+    Samuel Stark\\\href{mailto:sws35@cam.ac.uk}{sws35@cam.ac.uk}
+\end{center}%
+}
+    
+\end{frame}
+
+\appendix
+
+% References slide
+\turnipbibframe{}
+
+% Appendix slides here
+
+\end{document}

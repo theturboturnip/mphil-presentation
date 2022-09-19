@@ -1,0 +1,646 @@
+\input{sem8/notes}
+
+
+\documentclass[10pt,aspectratio=169]{beamer}
+
+% Style
+\usepackage{turnipmetropolis}
+
+% TODOs
+\usepackage[nofootnotes,warn]{turniptodo}
+
+\usepackage{graphicx}
+
+% Citations
+\usepackage[beamer]{turnipcite}
+\bibliography{2022_03_10}
+% Numbers in beamer bibliography
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+% For highlighting table rows
+\usepackage{colortbl}
+
+% For using OCR-d results table
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{multirow}
+
+% For centering too-wide table
+\usepackage{adjustbox}
+
+% For hiding columns in table
+\usepackage{array}
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
+
+% For strikethrough
+\usepackage[normalem]{ulem}
+
+% SI units
+\usepackage{siunitx}
+
+% Better tables
+\usepackage{booktabs}
+
+% Listings
+\usepackage{listings}
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+% \definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+\lstset{
+  basicstyle=\ttfamily\small,
+    %   backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    % numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},language=C,
+  columns=fullflexible,
+  escapeinside={/@}{@/}
+}
+
+
+% tikz options
+\usepackage{tikz}
+\usetikzlibrary{tikzmark}
+
+\usepackage{etoolbox}
+
+
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\point}[1]{\item #1\vfill\null}
+\newcommand{\spoint}[2]{\item #1\ifstrempty{#2}{}{\begin{itemize}
+    \item #2
+\end{itemize}}\vfill\null}
+\newcommand{\sitem}[2]{\item #1\ifstrempty{#2}{}{\begin{itemize}
+    \item #2
+\end{itemize}}}
+
+\newcommand{\twocol}[5][]{%
+\begin{columns}\ifstrempty{#1}{}{[T]}
+\column{#2\textwidth}
+#4
+\column{#3\textwidth}
+#5
+\end{columns}
+}
+\newcommand{\twostack}[2]{
+#1
+
+
+\vfill\null
+
+
+#2
+}
+
+
+\newcommand{\citeauthoryear}[1]{\citeauthor{#1}, \citeyear{#1}}
+
+\usepackage{turnipwordcount}
+
+\title{\papertitle{}}
+\subtitle{R01 Presentation/Report}
+\date{\reportdate{}}
+\author{Samuel Stark \emph{\href{mailto:sws35@cam.ac.uk}{(sws35)}}}
+\institute{University of Cambridge}
+
+% \setlength\itemsep{\fill}
+
+\begin{document}
+
+\maketitle
+\note{
+The handout notes collectively have each section of the review form.
+
+
+\vspace{1em}
+\begin{tabular}{l|c|r}
+Section & Location & Word Count \\
+\hline
+    Summary & Slide \ref{00_summary} & \quickwordcount{00_summary} \\
+    Pros and Cons & Slide \ref{01_pros_cons} & \quickwordcount{01_pros_cons} \\
+    Motivation & Slide \ref{02_motivation} & \quickwordcount{02_motivation} \\
+    Solution & Slide \ref{03_solution} & \quickwordcount{03_solution} \\
+    Evaluation & Slide \ref{04_evaluation} & \quickwordcount{04_evaluation} \\
+    Opinion & Slide \ref{05_opinion} & \quickwordcount{05_opinion} \\
+    Questions & Slide \ref{06_questions} & \quickwordcount{06_questions} \\
+\hline
+    Total & & \quickwordcount{full}
+\end{tabular}
+}
+\label{00_summary}
+
+
+
+\metroset{sectionpage=none}
+\section{Intro}
+\metroset{sectionpage=progressbar}
+
+\begin{frame}[standout]
+\usebeamercolor[bg]{normal text}
+    \begin{center}
+        {\huge 
+    Serval is a great project...
+    
+    
+    \vspace{2em}
+    
+    
+    \onslide<all:2>{...with a highly flawed writeup}
+    }
+    \end{center}
+\note{
+\textbf{Summary}
+
+\input{\dirname/00_summary.tex}
+}
+\end{frame}
+
+\begin{frame}{Background - Theorem Solving for Verification}
+\begin{itemize}
+    \point{So you want to formally verify your program against a specification}
+    
+    \spoint{Try \emph{interactive verification}}{
+        Write a proof that the implementation satisfies the spec
+        \item Used for CertiKOS\cite{guCertiKOSExtensibleArchitecture2016}
+    }
+    
+    \spoint{Try \emph{auto-active verification}}{
+        Derive proofs from annotated code (\cite{bondValeVerifyingHighperformance2017})
+        \item Used for Komodo\cite{ferraiuoloKomodoUsingVerification2017}
+    }
+
+\end{itemize}
+
+\note{CertiKOS = proof written and verified in Coq, the proof actually shows it supports concurrency?}
+\note{Komodo = proofs deduced from annotations in assembly code (Vale language)}
+\end{frame}
+
+
+% -----------------------------------------
+\begin{frame}{The Problem/Motivation - Prior Art}
+\label{02_motivation}
+
+\twocol{0.6}{0.4}{
+\begin{itemize}
+
+    \spoint{Even better, \emph{\alert{push-button verification}}}{
+        Derive constraints on the final output from the program
+        \item Solve the constraints and compare to the specification 
+        \item Requires a ``finite interface''
+        \item Used for Hyperkernel\cite{nelsonHyperkernelPushButtonVerification2017}
+    }
+    
+    \spoint{Entirely automated process, much faster}{
+        Manual proofs are \emph{long}
+        \item CertiKOS = 200k lines of proof
+        \item CertiKOS = 2 person-years
+        \item Serval = 4 person-weeks
+    }
+\end{itemize}
+}{
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{sem8/figs/push-button.png}
+    \caption{Push-button workflow\cite{nelsonScalingSymbolicEvaluation2019a}}
+\end{figure}
+}
+
+\note{
+\footnotesize
+\textbf{The Problem/Motivation}
+
+\input{\dirname/02_motivation.tex}
+}
+\end{frame}
+
+
+\begin{frame}{The Problem/Motivation - Rosette}
+    % \twocol{0.5}{0.5}{
+\begin{itemize}
+    \point{Rosette lifts an \emph{interpreter} into a \alert{verifier}}
+    \spoint{Deals in \emph{concrete values} and \emph{symbols}}{
+        e.g. program instructions = concrete
+        \item variables, arguments = symbols
+    }
+    \spoint{Rosette explores all possible program flows to find all possible end states}{
+    Will merge equivalent states
+    \item e.g. after branching}
+\end{itemize}
+    % }{
+    % }
+\end{frame}
+
+\begin{frame}{The Problem/Motivation - Profiling}
+    \twostack{
+    \begin{itemize}
+        \item Rosette authors later added a profiler to Rosette - SymPro\cite{bornholtFindingCodeThat2018}
+        \item Shows where combinatorial explosion happens
+    \end{itemize}
+    }{
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth,height=4cm,keepaspectratio]{sem8/figs/profiling.png}
+        \caption{Example of profiling Rosette\cite{nelsonScalingSymbolicEvaluation2019a}}
+    \end{figure}
+    }
+\end{frame}
+
+
+\begin{frame}{The Problem/Motivation - Combinatorial Explosion}
+    \twocol{0.5}{0.5}{
+    \begin{itemize}
+        \point{Rosette is designed to explore all execution paths}
+        \point{Rosette can be overzealous if a value becomes a \emph{symbol}}
+        \point{Rosette will try every potential symbol value, even if in context some are impossible}
+    \end{itemize}
+    }{
+    \begin{center}
+        \Large
+        $PC \leftarrow $ if $X < 0$ {then} $4$ {else} $2$\\
+        \vspace{2em}
+        
+        {Intuitively}\\
+            $PC \in \{2, 4\}$\\
+
+        \vspace{2em}
+        {To Rosette}\\
+            $PC \in \{1, 2, 3... \quad\includegraphics[height=1em,trim=0 2em 0 0,clip]{sem8/figs/amogus.png}...\quad{\LARGE \clubsuit}\}$\\
+
+
+    \end{center}
+
+    }
+\end{frame}
+
+
+
+% -----------------------------------------
+\section{Serval's Solutions}
+\label{03_solution}
+\note{
+\footnotesize
+\textbf{Solution}
+\input{\dirname/03_solution.tex}
+}
+
+\begin{frame}[standout]
+\usebeamercolor[bg]{normal text}
+    \begin{center}
+        {\huge 
+        Exploit domain knowledge to convert symbols into concrete values
+    }
+    \end{center}
+\end{frame}
+
+\begin{frame}{Symbolic Optimization - Program Counter}
+    \twocol{0.5}{0.5}{
+    \begin{itemize}
+        \spoint{Program Counter}{
+            Break the conditional \texttt{ite}
+            \item Evaluate each concrete path separately
+            \item Values must all be concrete
+        }
+        \point{Memory Addresses}
+        \point{System Registers}
+        \point{Monolithic Dispatch}
+    \end{itemize}
+    }{
+    \begin{figure}
+        \centering
+        \includegraphics{sem8/figs/splic-pc.pdf}
+        \caption{\texttt{split-pc}}
+    \end{figure}
+    }
+\end{frame}
+
+\begin{frame}{Symbolic Optimization - Memory Addresses}
+    \twocol{0.5}{0.5}{
+    \begin{itemize}
+        \point{Program Counter}
+        \spoint{Memory Addresses}{
+            Memory is modelled in \alert{blocks}
+            \item A symbolic address (e.g. integer-to-pointer converted) could point to \emph{any block}
+            \item Concretize specific patterns
+            \item Add a side condition to check the concretization's valid
+        }
+        \point{System Registers}
+        \point{Monolithic Dispatch}
+    \end{itemize}
+    }{
+        \begin{figure}
+        \centering
+        \includegraphics{sem8/figs/symbol-mem.pdf}
+        \caption{Symbolic Memory Patterns}
+    \end{figure}
+    }
+\end{frame}
+
+\begin{frame}{Symbolic Optimization - System Registers}
+    \begin{itemize}
+        \point{Program Counter}
+        \point{Memory Addresses}
+        \spoint{System Registers}{
+            Trap handlers rely on system register values
+            \item Usually these are symbolic
+            \item Some registers are only modified on boot
+            \item Concretize only these registers
+        }
+        \point{Monolithic Dispatch}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Symbolic Optimization - System Call Dispatch}
+    \twocol{0.5}{0.5}{
+    \begin{itemize}
+        \point{Program Counter}
+        \point{Memory Addresses}
+        \point{System Registers}
+        \spoint{Monolithic Dispatch}{
+        Many possible system calls
+        \item All invoked through same trap
+        \item Syscall number is symbolic -> all syscalls tried at once
+        \item We know all valid concrete values
+        \item Rewrite symbol as set of \texttt{ite}s
+        }
+    \end{itemize}
+    }{
+        \begin{figure}
+        \centering
+        \includegraphics{sem8/figs/split-case.pdf}
+        \caption{\texttt{split-case}}
+    \end{figure}
+    }
+\end{frame}
+
+\begin{frame}{Symbolic Optimization - Mystery???}
+    \begin{center}
+        \emph{``It is known that compiler optimizations can increase the verification time on binaries [72].}\\
+        \vspace{1em}
+        
+        \emph{To improve this, we continued to develop symbolic optimizations for Komodos.}\\
+        \vspace{1em}
+
+        
+        \emph{Specifically, \alert{one new optimization} sufficed to reduce the verification time of Komodos
+        for -O1 or -O2 to be
+        close to that for -O0}\\
+        \vspace{1em}
+        
+        
+        \emph{(it did not impact the verification time
+        of other systems).''}
+    \vfill\null
+    \onslide<2>{\Large Which one???}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Opinion}
+    % \twocol{0.5}{0.5}{
+    \vfill\null
+    \begin{itemize}
+        \spoint{Symbolic optimizations are great in concept}{
+        Makes some previously-impossible programs possible to verify (Section 3.2)
+        \item Where's the mystery optimization?}
+        \spoint{Theoretically informed by profiling}{
+        But ZERO proof of usefulness
+        \item If you're making a whole new class of programs feasible, prove it!}
+        \point{Weird that Rosette didn't do this before}
+        \spoint{Weird they didn't choose to add it directly to Rosette}{
+            Rosette authors implemented an automatic optimizer a year later - \cite{porncharoenwaseFixingCodeThat2020}
+        }
+        
+    \end{itemize}
+    % }{}
+\end{frame}
+
+% -----------------------------------------
+
+
+% -----------------------------------------
+\section{Serval's \sout{Evaluation} Case Studies}
+
+\begin{frame}{Verifiers}
+\twostack{
+Four verifiers:
+\begin{enumerate}
+    \item RISC-V (rv64im + CSRs)
+    \item x86-32 (Linux Kernel BPF JIT only)
+    \item LLVM IR (subset derived from Hyperkernel = ``substantial subset''\cite{nelsonHyperkernelPushButtonVerification2017}?)
+    \item BPF (essentially complete)
+\end{enumerate}
+    }{
+    \begin{itemize}
+        \item {Capabilities much more limited than one would expect based on abstract.}
+        \sitem{Verifiers are more concise than previous work}{But we don't know what subsets they operate on}
+        \sitem{``Wrote new interpreter tests and reused existing ones''}{No discussion of what tests passed/failed, which tests were actually used}
+    \end{itemize}
+    }
+    
+\end{frame}
+
+\begin{frame}{Retrofitting: CertiKOS + Komodo}
+\twostack{
+
+\begin{columns}[T]
+\column{0.5\textwidth}
+\begin{block}{CertiKOS}
+\begin{itemize}
+    \item Ported from x86 to RISC-V
+    \item Code left mostly unchanged
+    \item Delegated ELF loading to each process
+    \item Plugged security hole (found by Serval!)
+\end{itemize}
+\end{block}
+
+\column{0.5\textwidth}
+\begin{block}{Komodo}
+\begin{itemize}
+\item Ported from ARM to RISC-V
+\item Reused unverified C code, not verified ASM
+\end{itemize}
+\end{block}
+\end{columns}
+
+}{
+
+\begin{itemize}
+    \item {Porting + verification took 4 person-weeks per system}
+    \begin{itemize}
+        \item {vs. person-years for CertiKOS}
+        \end{itemize}
+    \item {Symbolic optimizations were required to get them to verify at all}
+    \item {Clearly, porting from other forms of verification is plausible}
+    \begin{itemize}
+        \item Although it does require slight modifications to proofs
+    \end{itemize}
+\end{itemize}
+
+}
+
+\end{frame}
+
+\begin{frame}{Bugfixing: Keystone + BPF}
+
+\twostack{
+    \begin{columns}[T]
+\column{0.5\textwidth}
+\begin{block}{Keystone}
+\begin{itemize}
+    \item Wrote a specification by hand
+    \item Compared specification to implementation by hand
+    \item Found bug in implementation by hand
+    \item Proved it was a bug with Serval
+    \item Found undefined behaviour in binary with Serval
+\end{itemize}
+\end{block}
+
+\column{0.5\textwidth}
+\begin{block}{BPF}
+\begin{itemize}
+\item Transpiled Linux JIT compiler to Rosette
+\item Combined BPF verifier with x86, RISC-V verifiers to compare side-effects of JITted instructions
+\item Found 15 bugs using Serval
+\item \cite{nelsonSpecificationVerificationField2020} expands on this, supports symbolic instructions
+\end{itemize}
+\end{block}
+\end{columns}
+}{
+\begin{itemize}
+    \item {Use of Serval is more limited, particularly for Keystone}
+    \item {But Serval is shown to be flexible, and useful}
+\end{itemize}
+}
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}[t]{Pros and Cons}
+\label{01_pros_cons}
+\label{05_opinion}
+
+\begin{columns}[T]
+\column{0.5\textwidth}
+\begin{block}{Pros}
+\begin{itemize}
+    \item \alert<all:2>{(Seemingly) well justified solutions}
+    \item \alert<all:3>{Usefulness proven through case studies}
+    \item \alert<all:4>{Excellent reproducibility}
+\end{itemize}
+\end{block}
+\column{0.5\textwidth}
+\begin{block}{Cons}
+\begin{itemize}
+    \item \alert<all:5>{No clear evaluation}
+    \item \alert<all:6-8>{The paper puffs itself up dishonestly}
+    \item \alert<all:9>{The paper is unfocused and overly long yet lacks essential detail}
+\end{itemize}
+\end{block}\end{columns}
+% \twocol[NOT EMPTY]{0.5}{0.5}{
+
+% }{
+
+% }
+
+
+
+% \textcolor{black}
+\vfill\null
+\begin{center}
+    \only<all:2-4>{\Large  {\textbf{But}}
+    \only<all:2>{{no concrete examples of profiling or improvements}}%
+    \only<all:3>{{the case studies don't use Serval as much as I'd expect, and require lots of manual intervention}}%
+    \only<all:4>{{\emph{\textless{}rebuttal not found\textgreater}}}
+    }
+    \only<all:6>{{\emph{Serval provides an extensible infrastructure for creating verifiers by lifting interpreters under symbolic evaluation, and a systematic approach to identifying and repairing verification performance bottlenecks using symbolic profiling and optimizations}}}
+    \only<all:7>{{\emph{Serval provides an extensible infrastructure for creating verifiers \alert{using Rosette\cite{torlakGrowingSolveraidedLanguages2013}}, and a systematic approach to identifying and repairing verification performance bottlenecks using symbolic profiling and optimizations}}}
+    \only<all:8>{{\emph{Serval provides an extensible infrastructure for creating verifiers \alert{using Rosette\cite{torlakGrowingSolveraidedLanguages2013}}, and a systematic approach to repairing verification performance bottlenecks using \alert{SymPro\cite{bornholtFindingCodeThat2018}} and symbolic optimizations}}}
+    \only<all:9>{
+    
+    {\Large Examples: constant cross-reference marks,\\describing new optimizations in the case study section}
+    
+    
+    
+    {\Large Split it in two?}
+    }
+\end{center}
+\vfill\null
+% }
+
+\note<handout:1>{
+\footnotesize
+\input{\dirname/01_pros_cons.tex}
+}
+\note<handout:2>{
+\footnotesize
+\textbf{Opinion}
+\input{\dirname/05_opinion.tex}
+}
+\end{frame}
+
+\begin{frame}{How to Improve?}
+\begin{center}
+\vfill\null    
+    {\Large Split it in two?}
+\vfill\null    
+\begin{columns}[T]
+\column{0.5\textwidth}
+\begin{block}{Serval: Symbolic Optimizations}
+    \begin{itemize}
+        \item Explain optimizations in detail (Section~3)
+        \item Prove they're useful
+        \item Mention case studies as supporting evidence
+    \end{itemize}
+\end{block}
+\column{0.5\textwidth}
+\begin{block}{Serval: Case Studies in Verification}
+    \begin{itemize}
+        \item Simple optimization explanation (Section~2)
+        \item Examine case studies in-depth (Section~6)
+        \begin{itemize}
+            \item e.g. steps taken to port CertiKOS and Komodo to RISC-V
+        \end{itemize}
+    \end{itemize}
+\end{block}
+\end{columns}
+\vfill\null  
+\end{center}
+\end{frame}
+
+
+\begin{frame}[standout]
+\label{06_questions}
+ \usebeamercolor[bg]{normal text}
+    \begin{minipage}[c][0.5\paperheight]{\textwidth}
+    \begin{center}
+        {\Huge Questions?}
+    \end{center}
+    \end{minipage}
+
+    \begin{center}
+        \begin{itemize}
+         \usebeamercolor[bg]{normal text}
+            \item Why doesn't Rosette do these optimizations already?
+            \item Why not add these optimizations to Rosette directly?
+        \end{itemize}
+    \end{center}
+
+\note{
+\footnotesize
+\textbf{Questions for the Authors}
+
+\input{\dirname/06_questions.tex}
+}
+\end{frame}
+
+\appendix
+
+% References slide
+\turnipbibframe{}
+
+% Appendix slides here
+
+\end{document}
